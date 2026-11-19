@@ -1,5 +1,18 @@
 import juice from 'juice'
 
+export function fitArticleImages(html) {
+  const template = document.createElement(`template`)
+  template.innerHTML = html
+  for (const image of template.content.querySelectorAll(`img`)) {
+    image.removeAttribute(`width`)
+    image.removeAttribute(`height`)
+    image.style.width = `100%`
+    image.style.maxWidth = `100%`
+    image.style.height = `auto`
+  }
+  return template.innerHTML
+}
+
 export function solveWeChatImage() {
   const clipboardDiv = document.getElementById(`output`)
   const images = clipboardDiv.getElementsByTagName(`img`)

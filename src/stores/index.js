@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { marked } from 'marked'
 import CodeMirror from 'codemirror/lib/codemirror'
+import { fitArticleImages } from '@/assets/scripts/converter'
 
 import config from '../assets/scripts/config'
 import WxRenderer from '../assets/scripts/renderers/wx-renderer'
@@ -183,7 +184,10 @@ export const useStore = defineStore(`store`, {
           </style>
         `
       }
-      this.output = output
+      this.output =
+        process.env.BASE_URL === `/wxeditor/`
+          ? fitArticleImages(output)
+          : output
     },
   },
 })
