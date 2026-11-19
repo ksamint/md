@@ -152,6 +152,7 @@
       <el-button plain size="medium">版本历史</el-button>
       <el-dropdown-menu slot="dropdown">
         <el-dropdown-item command="save">保存当前版本</el-dropdown-item>
+        <el-dropdown-item command="link">保存并获取文章链接</el-dropdown-item>
         <el-dropdown-item
           v-for="version in versions"
           :key="version.id"
@@ -357,7 +358,29 @@ export default {
       this.setIsMacCodeBlock(this.isMacCodeBlock)
       this.$emit(`refresh`)
     },
+    async saveArticleLink() {
+      try {
+        const reply = await fetch(`/wxeditor/articles`, {
+          method: `POST`,
+          body: this.editor.getValue(),
+        })
+        if (!reply.ok) throw new Error(await reply.text())
+        const { url } = await reply.json()
+        await this.$prompt(`在任何浏览器登录后可打开此版本`, `文章链接`, {
+          inputValue: url,
+          confirmButtonText: `打开文章`,
+          cancelButtonText: `关闭`,
+          inputValidator: (value) => value === url,
+        })
+        window.location.assign(url)
+      } catch (error) {
+        if (error !== `cancel` && error !== `close`) {
+          this.$message.error(`无法保存文章链接`)
+        }
+      }
+    },
     versionCommand(command) {
+      if (command === `link`) return this.saveArticleLink()
       const content = this.editor.getValue()
       const version = this.versions.find((entry) => entry.id === command)
       if (command !== `save` && !version) return

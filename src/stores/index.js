@@ -98,7 +98,6 @@ export const useStore = defineStore(`store`, {
         extraKeys: {
           'Ctrl-F': function autoFormat(editor) {
             const doc = formatDoc(editor.getValue(0))
-            localStorage.setItem(`__editor_content`, doc)
             editor.setValue(doc)
           },
           'Ctrl-S': function save(editor) {},

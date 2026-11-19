@@ -150,6 +150,10 @@ export default {
     UploadImgDialog,
   },
   computed: {
+    linkedArticleId() {
+      if (process.env.BASE_URL !== `/wxeditor/`) return undefined
+      return location.pathname.match(/^\/wxeditor\/([a-f0-9]{32})$/)?.[1]
+    },
     ...mapState(useStore, {
       wxRenderer: (state) => state.wxRenderer,
       output: (state) => state.output,
@@ -168,9 +172,26 @@ export default {
       this.initCssEditor()
       this.onEditorRefresh()
       this.mdLocalToRemote()
+      this.loadLinkedArticle()
     })
   },
   methods: {
+    async loadLinkedArticle() {
+      const id = this.linkedArticleId
+      if (!id) return
+      this.editor.setOption(`readOnly`, true)
+      this.editor.setValue(``)
+      try {
+        const reply = await fetch(`/wxeditor/articles/${id}`)
+        if (!reply.ok) throw new Error(await reply.text())
+        this.editor.setValue(await reply.text())
+      } catch {
+        this.$message.error(`无法打开此文章版本`)
+      } finally {
+        this.editor.setOption(`readOnly`, false)
+      }
+    },
+
     // 转换 markdown 中的本地图片为线上图片
     // todo 处理事件覆盖
     mdLocalToRemote() {
@@ -274,7 +295,8 @@ export default {
         if (this.changeTimer) clearTimeout(this.changeTimer)
         this.changeTimer = setTimeout(() => {
           this.onEditorRefresh()
-          saveEditorContent(this.editor, `__editor_content`)
+          if (!this.linkedArticleId)
+            saveEditorContent(this.editor, `__editor_content`)
         }, 300)
       })
 
@@ -548,7 +570,6 @@ export default {
           let txt = event.target.result
           txt = formatDoc(txt)
           if (txt) {
-            localStorage.setItem(`__editor_content`, txt)
             this.editor.setValue(txt)
             this.$message.success(`文档导入成功`)
           }
@@ -560,7 +581,6 @@ export default {
     // 格式化文档
     formatContent() {
       const doc = formatDoc(this.editor.getValue(0))
-      localStorage.setItem(`__editor_content`, doc)
       this.editor.setValue(doc)
     },
     // 右键菜单
