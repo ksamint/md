@@ -24,11 +24,13 @@
       rel="apple-touch-icon-precomposed"
       href="https://cdn-doocs.oss-cn-shenzhen.aliyuncs.com/gh/doocs/md/images/1648303220922-7e14aefa-816e-44c1-8604-ade709ca1c69.png"
     />
+    <% if (BASE_URL !== "/wxeditor/") { %>
     <link
       rel="stylesheet"
       href="https://cdn-doocs.oss-cn-shenzhen.aliyuncs.com/gh/wechatsync/article-syncjs@latest/dist/styles.css"
     />
     <script src="https://cdn-doocs.oss-cn-shenzhen.aliyuncs.com/npm/prettify/r298/prettify.min.js"></script>
+    <% } %>
   </head>
 
   <body>
@@ -38,6 +40,8 @@
     <div id="app"></div>
     <!-- built files will be auto injected -->
   </body>
+  <% if (BASE_URL !== "/wxeditor/") { %>
   <script src="https://cdn-doocs.oss-cn-shenzhen.aliyuncs.com/gh/wechatsync/article-syncjs@latest/dist/main.js"></script>
+  <% } %>
 </html>
 
