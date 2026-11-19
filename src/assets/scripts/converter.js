@@ -9,8 +9,8 @@ export function solveWeChatImage() {
     const height = image.getAttribute(`height`)
     image.removeAttribute(`width`)
     image.removeAttribute(`height`)
-    image.style.width = width
-    image.style.height = height
+    if (width) image.style.width = width
+    if (height) image.style.height = height
   }
 }
 

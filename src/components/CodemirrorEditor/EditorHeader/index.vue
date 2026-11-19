@@ -148,6 +148,19 @@
         </el-dropdown-menu>
       </el-dropdown>
     </div>
+    <el-dropdown v-if="hostedEditor" @command="versionCommand">
+      <el-button plain size="medium">版本历史</el-button>
+      <el-dropdown-menu slot="dropdown">
+        <el-dropdown-item command="save">保存当前版本</el-dropdown-item>
+        <el-dropdown-item
+          v-for="version in versions"
+          :key="version.id"
+          :command="version.id"
+        >
+          {{ new Date(version.id).toLocaleString() }} · {{ version.title }}
+        </el-dropdown-item>
+      </el-dropdown-menu>
+    </el-dropdown>
     <el-button plain size="medium" :type="btnType" @click="copy">
       复制
     </el-button>
@@ -186,6 +199,8 @@ export default {
   data() {
     return {
       config,
+      hostedEditor: process.env.BASE_URL === `/wxeditor/`,
+      versions: [],
       citeStatus: false,
       isMacCodeBlock: true,
       showResetConfirm: false,
@@ -233,6 +248,15 @@ export default {
     PostInfoDialog,
     StyleOptionMenu,
     ResetDialog,
+  },
+  created() {
+    if (!this.hostedEditor) return
+    try {
+      const saved = JSON.parse(localStorage.getItem(`__wxeditor_versions`))
+      if (Array.isArray(saved)) this.versions = saved
+    } catch {
+      this.$message.warning(`无法读取版本历史`)
+    }
   },
   computed: {
     btnType() {
@@ -332,6 +356,32 @@ export default {
       this.isMacCodeBlock = !this.isMacCodeBlock
       this.setIsMacCodeBlock(this.isMacCodeBlock)
       this.$emit(`refresh`)
+    },
+    versionCommand(command) {
+      const content = this.editor.getValue()
+      const version = this.versions.find((entry) => entry.id === command)
+      if (command !== `save` && !version) return
+      let next = this.versions
+      if (content !== next[0]?.content) {
+        const title = content.match(/<img[^>]* alt="([^"]+)"/)?.[1]
+        next = [
+          {
+            id: Date.now(),
+            content,
+            title: title || content.trim().slice(0, 24),
+          },
+          ...next,
+        ].slice(0, 50)
+      }
+      try {
+        localStorage.setItem(`__wxeditor_versions`, JSON.stringify(next))
+      } catch {
+        this.$message.error(`无法保存版本。浏览器存储空间不足或不可用。`)
+        return
+      }
+      this.versions = next
+      if (version) this.editor.setValue(version.content)
+      this.$message.success(version ? `已恢复版本` : `已保存版本`)
     },
     // 复制到微信公众号
     copy() {
