@@ -304,6 +304,14 @@ async function formCustomUpload(content, file) {
 }
 
 function fileUpload(content, file) {
+  if (process.env.BASE_URL === `/wxeditor/`) {
+    return fetch(`/wxeditor/upload`, { method: `POST`, body: file }).then(
+      async (response) => {
+        if (!response.ok) throw new Error(await response.text())
+        return (await response.json()).url
+      }
+    )
+  }
   const imgHost = localStorage.getItem(`imgHost`)
   !imgHost && localStorage.setItem(`imgHost`, `default`)
   switch (imgHost) {
